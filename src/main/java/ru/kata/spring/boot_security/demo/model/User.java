@@ -1,77 +1,42 @@
 package ru.kata.spring.boot_security.demo.model;
 
 import org.springframework.security.core.GrantedAuthority;
+import javax.validation.constraints.*;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "t_user")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private long id;
-
-    @Column(name = "name")
-    private String name;
-
-    @Column(name = "surname")
-    private String surname;
-
-    @Column(name = "username")
+    private Long id;
+    @Size(min=2, message = "Не меньше 5 знаков")
     private String username;
-
-    @Column(name = "password")
+    @Size(min=2, message = "Не меньше 5 знаков")
     private String password;
-
-
+    @Transient
+    private String passwordConfirm;
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
-    private List<Role> role = new ArrayList<>();
+    private Set<Role> roles;
 
     public User() {
     }
 
-    public User(long id, String name, String surname, String username, String password, List<Role> role) {
-        this.id = id;
-        this.name = name;
-        this.surname = surname;
-        this.username = username;
-        this.password = password;
-        this.role = role;
-    }
-
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
-
+    @Override
     public String getUsername() {
         return username;
     }
@@ -102,9 +67,10 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return getRole();
+        return getRoles();
     }
 
+    @Override
     public String getPassword() {
         return password;
     }
@@ -113,35 +79,20 @@ public class User implements UserDetails {
         this.password = password;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return id == user.id && name.equals(user.name) && surname.equals(user.surname) && username.equals(user.username) && password.equals(user.password);
+    public String getPasswordConfirm() {
+        return passwordConfirm;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, surname, username, password);
+    public void setPasswordConfirm(String passwordConfirm) {
+        this.passwordConfirm = passwordConfirm;
     }
 
-    @Override
-    public String toString() {
-        return "User{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", surname='" + surname + '\'' +
-                ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
-                '}';
+    public Set<Role> getRoles() {
+        return roles;
     }
 
-    public List<Role> getRole() {
-        return role;
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
-    public void setRole(List<Role> role) {
-        this.role = role;
-    }
 }

@@ -1,72 +1,38 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-import ru.kata.spring.boot_security.demo.model.Role;
-import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.service.RoleService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@RestController
-@RequestMapping("/login")
+@Controller
 public class AdminController {
-
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private RoleService roleService;
-
-    @GetMapping("/")
-    public String index(Model model) {
-        model.addAttribute("user", userService.getAllUsers());
-        return "index";
+    @GetMapping("/admin")
+    public String userList(Model model) {
+        model.addAttribute("allUsers", userService.allUsers());
+        return "admin";
     }
 
-    @GetMapping("/{id}/edit")
-    public String edit(@PathVariable("id") int id, Model model) {
-        model.addAttribute("user", userService.getUserById(id));
-        model.addAttribute("rolelist", roleService.getAllRoles());
-        return "edit";
-    }
-
-    @PutMapping("/{id}")
-    public String update(@ModelAttribute("user") User user, @PathVariable("id") int id, @RequestParam String[] roles) {
-        List<Role> rolelist = new ArrayList<>();
-        for (String s : roles) {
-            rolelist.add(roleService.getByName(s));
+    @PostMapping("/admin")
+    public String  deleteUser(@RequestParam(required = true, defaultValue = "" ) Long userId,
+                              @RequestParam(required = true, defaultValue = "" ) String action,
+                              Model model) {
+        if (action.equals("delete")){
+            userService.deleteUser(userId);
         }
-        user.setRole(rolelist);
-        userService.updateUser(user);
         return "redirect:/admin";
     }
 
-    @DeleteMapping("/{id}")
-    public String delete(@PathVariable("id") int id) {
-        userService.deleteUserById(id);
-        return "redirect:/admin";
-    }
-
-    @GetMapping("/new")
-    public String newUser(Model model) {
-        model.addAttribute("user", new User());
-        model.addAttribute("roleList", roleService.getAllRoles());
-        return "new";
-    }
-
-    @PostMapping
-    public String create(@ModelAttribute("user") User user, String[] roles) {
-        List<Role> roleList = new ArrayList<>();
-        for (String s : roles) {
-            roleList.add(roleService.getByName(s));
-        }
-        user.setRole(roleList);
-        userService.addUser(user);
-        return "redirect:/admin";
-
+    @GetMapping("/admin/gt/{userId}")
+    public String  gtUser(@PathVariable("userId") Long userId, Model model) {
+        model.addAttribute("allUsers", userService.usergtList(userId));
+        return "admin";
     }
 }
